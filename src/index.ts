@@ -1,5 +1,6 @@
 import {
   digit,
+  decimalDigits,
   digitPrefix,
   oneVariant,
   tents,
@@ -11,7 +12,7 @@ import {
   suffixDahi,
   suffixDugaar,
   latinText,
-  WordTransformation
+  WordTransformation,
 } from './number_texts'
 
 const hundredsPrefix = (num: number): string => {
@@ -23,14 +24,16 @@ const hundredsPrefix = (num: number): string => {
   }
   if (num < 100) {
     if (num % 10 === 0) {
-      return tentPrefix[(num / 10) - 1]
+      return tentPrefix[num / 10 - 1]
     }
     const base = Math.floor(num / 10)
-    const remainder = num - base * 10 - 1;
-    return `${tentPrefix[base - 1]} ${remainder === 0 ? oneVariant : digitPrefix[remainder]}`
+    const remainder = num - base * 10 - 1
+    return `${tentPrefix[base - 1]} ${
+      remainder === 0 ? oneVariant : digitPrefix[remainder]
+    }`
   }
   if (num < 1000) {
-    const divisor = 100;
+    const divisor = 100
     const remainder = num % divisor
     const divided = num / divisor
     if (remainder === 0) {
@@ -38,14 +41,28 @@ const hundredsPrefix = (num: number): string => {
     }
     const base = Math.floor(num / divisor)
     if (remainder < 10) {
-      return `${digitPrefix[base - 1]} ${tenPowersPrefix[0]} ${remainder === 1 ? oneVariant : digitPrefix[remainder - 1]}`
+      return `${digitPrefix[base - 1]} ${tenPowersPrefix[0]} ${
+        remainder === 1 ? oneVariant : digitPrefix[remainder - 1]
+      }`
     }
-    return `${digitPrefix[base - 1]} ${tenPowersPrefix[0]} ${hundredsPrefix(remainder)}`
+    return `${digitPrefix[base - 1]} ${tenPowersPrefix[0]} ${hundredsPrefix(
+      remainder
+    )}`
   }
   return ''
 }
 
-const toText = (num: number): string => {
+const toText = (num: number, toFixedNumber: number): string => {
+  num = Number(num.toFixed(toFixedNumber))
+  if (num > 0 && num < 1) {
+    // Зарим тохиолдолд бутархай тоо exponential e хувьсагчтай байсан учир дандаа string рүү toFixed ашиглан хөрвүүлэв
+    const splitNumbers = num.toFixed(toFixedNumber).split('.')
+    const decimalNumber = splitNumbers[1].replace(new RegExp('0+$'), '')
+    return `${decimalDigits[decimalNumber.length - 1]} ${toText(
+      Number(decimalNumber),
+      toFixedNumber
+    )}`
+  }
   if (num < 10) {
     if (num === 0) {
       return digit[9]
@@ -54,55 +71,73 @@ const toText = (num: number): string => {
   }
   if (num < 100) {
     if (num % 10 === 0) {
-      return tents[(num / 10) - 1]
+      return tents[num / 10 - 1]
     }
     const base = Math.floor(num / 10)
+    if (num % 1 !== 0) {
+      const number = num.toFixed(toFixedNumber).split('.')
+      const integer = Number(number[0])
+      return `${tentPrefix[base - 1]} ${
+        digit[Math.floor(num - base * 10 - 1)]
+      } ${toText(num - integer, toFixedNumber)}`
+    }
     return `${tentPrefix[base - 1]} ${digit[num - base * 10 - 1]}`
   }
 
   if (num < 1000) {
-    const divisor = 100;
+    const divisor = 100
     const remainder = num % divisor
     const divided = num / divisor
     if (remainder === 0) {
       return `${digitPrefix[divided - 1]} ${tenPowers[0]}`
     }
     const base = Math.floor(num / divisor)
-    return `${digitPrefix[base - 1]} ${tenPowersPrefix[0]} ${toText(remainder)}`
+    return `${digitPrefix[base - 1]} ${tenPowersPrefix[0]} ${toText(
+      remainder,
+      toFixedNumber
+    )}`
   }
 
   if (num < 1000_000) {
-    const divisor = 1000;
+    const divisor = 1000
     const remainder = num % divisor
     const divided = Math.floor(num / divisor)
-    if (remainder === 0)
-      return `${hundredsPrefix(divided)} ${tenPowers[1]}`
-    return `${hundredsPrefix(divided)} ${tenPowers[1]} ${toText(remainder)}`
+    if (remainder === 0) return `${hundredsPrefix(divided)} ${tenPowers[1]}`
+    return `${hundredsPrefix(divided)} ${tenPowers[1]} ${toText(
+      remainder,
+      toFixedNumber
+    )}`
   }
 
   if (num < 1000_000_000) {
-    const divisor = 1000_000;
+    const divisor = 1000_000
     const remainder = num % divisor
     const divided = Math.floor(num / divisor)
-    if (remainder === 0)
-      return `${hundredsPrefix(divided)} ${tenPowers[2]}`
-    return `${hundredsPrefix(divided)} ${tenPowers[2]} ${toText(remainder)}`
+    if (remainder === 0) return `${hundredsPrefix(divided)} ${tenPowers[2]}`
+    return `${hundredsPrefix(divided)} ${tenPowers[2]} ${toText(
+      remainder,
+      toFixedNumber
+    )}`
   }
   if (num < 1000_000_000_000) {
-    const divisor = 1000_000_000;
+    const divisor = 1000_000_000
     const remainder = num % divisor
     const divided = Math.floor(num / divisor)
-    if (remainder === 0)
-      return `${hundredsPrefix(divided)} ${tenPowers[3]}`
-    return `${hundredsPrefix(divided)} ${tenPowers[3]} ${toText(remainder)}`
+    if (remainder === 0) return `${hundredsPrefix(divided)} ${tenPowers[3]}`
+    return `${hundredsPrefix(divided)} ${tenPowers[3]} ${toText(
+      remainder,
+      toFixedNumber
+    )}`
   }
   if (num < 1000_000_000_000_000) {
-    const divisor = 1000_000_000_000;
+    const divisor = 1000_000_000_000
     const remainder = num % divisor
     const divided = Math.floor(num / divisor)
-    if (remainder === 0)
-      return `${hundredsPrefix(divided)} ${tenPowers[4]}`
-    return `${hundredsPrefix(divided)} ${tenPowers[4]} ${toText(remainder)}`
+    if (remainder === 0) return `${hundredsPrefix(divided)} ${tenPowers[4]}`
+    return `${hundredsPrefix(divided)} ${tenPowers[4]} ${toText(
+      remainder,
+      toFixedNumber
+    )}`
   }
   return ''
 }
@@ -111,15 +146,16 @@ export interface MonNumOptions {
   suffix?: 'iin' | 'dahi' | 'dugaar' | 'n'
   ucFirst?: boolean
   upperCase?: boolean
+  toFixedNumber?: number
 }
 
 export const toWords = (num: number, options?: MonNumOptions): string => {
   if (num >= 1000_000_000_000_000) {
-    console.log('mon_num: The number exceeds the limit of 999999999999999');
-    return '';
+    console.log('mon_num: The number exceeds the limit of 999999999999999')
+    return ''
   }
-  let result = toText(num)
-  if (typeof options !== 'object' || !options) return result;
+  let result = toText(num, options?.toFixedNumber ?? 2)
+  if (typeof options !== 'object' || !options) return result
 
   const separated = result.split(' ')
   if (separated.length > 0 && options.suffix) {
@@ -127,19 +163,19 @@ export const toWords = (num: number, options?: MonNumOptions): string => {
     let collection: WordTransformation[] = []
 
     if (options.suffix === 'iin') {
-      collection = suffixIin;
+      collection = suffixIin
     }
     if (options.suffix === 'n') {
-      collection = suffixN;
+      collection = suffixN
     }
     if (options.suffix === 'dugaar') {
-      collection = suffixDugaar;
+      collection = suffixDugaar
     }
     if (options.suffix === 'dahi') {
-      collection = suffixDahi;
+      collection = suffixDahi
     }
 
-    const transformation = collection.find(suffix => suffix.word === lastWord)
+    const transformation = collection.find((suffix) => suffix.word === lastWord)
     if (transformation) {
       separated.pop()
       if (options.suffix === 'n' && result === 'нэг') {
@@ -152,11 +188,13 @@ export const toWords = (num: number, options?: MonNumOptions): string => {
   }
   if (options.latin === true && separated.length > 0) {
     const separatedNew = result.split(' ')
-    const transformedList = separatedNew.map(word => latinText.find(latin => latin.word === word)?.tf)
+    const transformedList = separatedNew.map(
+      (word) => latinText.find((latin) => latin.word === word)?.tf
+    )
     result = transformedList.join(' ')
   }
   if (options.ucFirst === true) {
-    result = result.charAt(0).toUpperCase() + result.slice(1);
+    result = result.charAt(0).toUpperCase() + result.slice(1)
   }
   if (options.upperCase === true) {
     result = result.toUpperCase()
